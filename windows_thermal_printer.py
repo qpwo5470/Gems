@@ -130,8 +130,8 @@ class WindowsThermalPrinter:
             print(f"Original image: {img.size[0]}x{img.size[1]} pixels")
             
             # Simple crop from left to compensate for printer margin
-            # Crop 7 pixels from the left side
-            crop_left = 7
+            # Crop 88 pixels from the left side
+            crop_left = 88
             width, height = img.size
             
             if width > crop_left:
