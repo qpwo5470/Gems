@@ -101,7 +101,7 @@ class WindowsThermalPrinter:
             print(f"Error printing text: {e}")
             return False
     
-    def print_bitmap(self, image_path: str) -> bool:
+    def print_bitmap(self, image_path: str, compensate_margins: bool = True) -> bool:
         """Print bitmap image using Windows GDI"""
         if not self.is_connected:
             print("Printer not connected")
@@ -129,32 +129,24 @@ class WindowsThermalPrinter:
             img = Image.open(image_path)
             print(f"Original image: {img.size[0]}x{img.size[1]} pixels")
             
-            # Auto-crop left white space for thermal printer
-            # Find the leftmost non-white pixel
-            if img.mode != 'RGB':
-                img_rgb = img.convert('RGB')
-            else:
-                img_rgb = img
+            # Apply margin compensation if enabled
+            if compensate_margins:
+                from thermal_margin_fix import ThermalMarginFixer
                 
-            width, height = img.size
-            left_crop = 0
-            
-            # Scan from left to find first non-white column
-            for x in range(width):
-                for y in range(0, height, 10):  # Sample every 10 pixels for speed
-                    r, g, b = img_rgb.getpixel((x, y))
-                    # If not white (allowing some tolerance)
-                    if r < 250 or g < 250 or b < 250:
-                        left_crop = x
-                        break
-                if left_crop > 0:
-                    break
-            
-            # Crop the image if white space found
-            if left_crop > 0:
-                print(f"Cropping {left_crop}px from left side")
-                img = img.crop((left_crop, 0, width, height))
-                print(f"Cropped image: {img.size[0]}x{img.size[1]} pixels")
+                # Use measured margins for HMK-072
+                fixer = ThermalMarginFixer(left_margin_mm=6.2, right_margin_mm=4.5)
+                
+                # Create temporary adjusted image
+                import tempfile
+                with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+                    adjusted_path = tmp.name
+                
+                adjusted_path = fixer.fix_image_for_printing(image_path, adjusted_path)
+                img = Image.open(adjusted_path)
+                
+                # Clean up temp file after printing
+                import atexit
+                atexit.register(lambda: os.remove(adjusted_path) if os.path.exists(adjusted_path) else None)
             
             # Start print job
             hdc.StartDoc("Bitmap Print")
