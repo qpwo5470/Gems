@@ -37,18 +37,20 @@
         
         .continue-button {
             position: absolute;
-            /* Position at 79.2% from left (1520/1920), 76.85% from top (830/1080 assuming 16:9) */
-            left: 79.2%;
+            /* Position: x=1520, y=830, w=300, h=150 on 1920x1080 */
+            /* Left edge at 1520/1920 = 79.17% */
+            /* Top edge at 830/1080 = 76.85% */
+            /* Width: 300/1920 = 15.625% */
+            /* Height: 150/1080 = 13.89% */
+            left: 79.17%;
             top: 76.85%;
-            transform: translate(-50%, -50%);
+            width: 15.625%;
+            height: 13.89%;
             background: none;
             border: none;
             padding: 0;
             cursor: pointer;
             transition: transform 0.1s ease;
-            /* Scale button based on viewport */
-            width: 10vw;
-            height: auto;
             /* Remove blue outline/stroke when clicked */
             outline: none;
         }
@@ -58,11 +60,11 @@
         }
         
         .continue-button:hover {
-            transform: translate(-50%, -50%) scale(1.05);
+            transform: scale(1.05);
         }
         
         .continue-button:active {
-            transform: translate(-50%, -50%) scale(0.95);
+            transform: scale(0.95);
         }
         
         .continue-button img {
@@ -94,31 +96,10 @@
             }
         });
         
-        // Adjust button size based on screen size
-        function adjustButtonSize() {
-            const button = document.querySelector('.continue-button');
-            const vw = window.innerWidth;
-            const vh = window.innerHeight;
-            
-            // Assuming original design was for 1920x1080
-            // Button should be proportional to screen size
-            const baseWidth = 1920;
-            const buttonBaseSize = 192; // ~10% of base width
-            
-            const scaleFactor = vw / baseWidth;
-            const buttonSize = buttonBaseSize * scaleFactor;
-            
-            button.style.width = buttonSize + 'px';
-        }
-        
         // Focus the button for keyboard accessibility
         window.addEventListener('load', function() {
             document.getElementById('continueBtn').focus();
-            adjustButtonSize();
         });
-        
-        // Readjust on window resize
-        window.addEventListener('resize', adjustButtonSize);
         
         // Optional: Toggle between contain and cover
         // Uncomment if you want to use cover instead of contain
