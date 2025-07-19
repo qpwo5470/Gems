@@ -3,8 +3,23 @@ import os
 from typing import Optional
 import platform
 
-class ThermalPrinter:
-    """Windows thermal printer driver for HMK-072 using HW_API.dll"""
+# Try to use Windows printer API first
+try:
+    if platform.system() == 'Windows':
+        from windows_thermal_printer import ThermalPrinter as WindowsPrinter
+        USE_WINDOWS_PRINTER = True
+    else:
+        USE_WINDOWS_PRINTER = False
+except ImportError:
+    USE_WINDOWS_PRINTER = False
+
+# Use Windows printer if available
+if USE_WINDOWS_PRINTER:
+    ThermalPrinter = WindowsPrinter
+else:
+    # Fallback to DLL-based printer
+    class ThermalPrinter:
+        """Windows thermal printer driver for HMK-072 using HW_API.dll"""
     
     # Constants from API
     INT_SERIAL = 1

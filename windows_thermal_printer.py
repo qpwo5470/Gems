@@ -1,0 +1,271 @@
+"""Windows thermal printer driver using Windows Print API"""
+
+import os
+import platform
+from typing import Optional
+
+if platform.system() == 'Windows':
+    try:
+        import win32print
+        import win32ui
+        from PIL import Image, ImageWin
+        WINDOWS_PRINT_AVAILABLE = True
+    except ImportError:
+        WINDOWS_PRINT_AVAILABLE = False
+else:
+    WINDOWS_PRINT_AVAILABLE = False
+
+
+class WindowsThermalPrinter:
+    """Windows printer driver for HWASUNG HMK-072"""
+    
+    def __init__(self, printer_name: str = "HWASUNG HMK-072"):
+        """Initialize Windows thermal printer
+        
+        Args:
+            printer_name: Windows printer name (default: "HWASUNG HMK-072")
+        """
+        self.printer_name = printer_name
+        self.is_connected = False
+        
+        if not WINDOWS_PRINT_AVAILABLE:
+            raise ImportError("pywin32 is required. Install with: pip install pywin32")
+            
+        # Check if printer exists
+        self.check_printer()
+    
+    def check_printer(self) -> bool:
+        """Check if printer is available in Windows"""
+        try:
+            printers = [p[2] for p in win32print.EnumPrinters(
+                win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS)]
+            
+            if self.printer_name in printers:
+                self.is_connected = True
+                print(f"✓ Found printer: {self.printer_name}")
+                
+                # Get printer info
+                handle = win32print.OpenPrinter(self.printer_name)
+                info = win32print.GetPrinter(handle, 2)
+                win32print.ClosePrinter(handle)
+                
+                print(f"  Port: {info['pPortName']}")
+                print(f"  Driver: {info['pDriverName']}")
+                print(f"  Status: {'Ready' if info['Status'] == 0 else 'Not Ready'}")
+                
+                return True
+            else:
+                print(f"✗ Printer '{self.printer_name}' not found")
+                print(f"Available printers: {', '.join(printers)}")
+                return False
+                
+        except Exception as e:
+            print(f"Error checking printer: {e}")
+            return False
+    
+    def print_raw_text(self, text: str, encoding: str = 'cp949') -> bool:
+        """Print raw text to printer"""
+        if not self.is_connected:
+            print("Printer not connected")
+            return False
+            
+        try:
+            # Open printer
+            hprinter = win32print.OpenPrinter(self.printer_name)
+            
+            # Start document
+            job_info = ("Text Print", None, "RAW")
+            hjob = win32print.StartDocPrinter(hprinter, 1, job_info)
+            
+            try:
+                win32print.StartPagePrinter(hprinter)
+                
+                # Convert text to bytes
+                if isinstance(text, str):
+                    data = text.encode(encoding)
+                else:
+                    data = text
+                    
+                # Send data
+                win32print.WritePrinter(hprinter, data)
+                
+                win32print.EndPagePrinter(hprinter)
+                
+            finally:
+                win32print.EndDocPrinter(hprinter)
+                
+            win32print.ClosePrinter(hprinter)
+            return True
+            
+        except Exception as e:
+            print(f"Error printing text: {e}")
+            return False
+    
+    def print_bitmap(self, image_path: str) -> bool:
+        """Print bitmap image using Windows GDI"""
+        if not self.is_connected:
+            print("Printer not connected")
+            return False
+            
+        if not os.path.exists(image_path):
+            print(f"Image not found: {image_path}")
+            return False
+            
+        try:
+            # Convert to BMP if needed
+            if not image_path.lower().endswith('.bmp'):
+                from bitmap_converter import convert_to_bitmap
+                bmp_path = convert_to_bitmap(image_path)
+                if not bmp_path:
+                    print("Failed to convert to bitmap")
+                    return False
+                image_path = bmp_path
+            
+            # Create printer device context
+            hdc = win32ui.CreateDC()
+            hdc.CreatePrinterDC(self.printer_name)
+            
+            # Open image
+            img = Image.open(image_path)
+            print(f"Printing image: {img.size[0]}x{img.size[1]} pixels")
+            
+            # Start print job
+            hdc.StartDoc("Bitmap Print")
+            hdc.StartPage()
+            
+            # Calculate printer resolution
+            printer_size = hdc.GetDeviceCaps(110), hdc.GetDeviceCaps(111)  # PHYSICALWIDTH, PHYSICALHEIGHT
+            printer_margins = hdc.GetDeviceCaps(112), hdc.GetDeviceCaps(113)  # PHYSICALOFFSETX, PHYSICALOFFSETY
+            printer_area = (
+                printer_size[0] - 2 * printer_margins[0],
+                printer_size[1] - 2 * printer_margins[1]
+            )
+            
+            # Scale image to fit printer width (maintain aspect ratio)
+            img_ratio = img.size[0] / img.size[1]
+            print_width = printer_area[0]
+            print_height = int(print_width / img_ratio)
+            
+            # Convert to Windows DIB and print
+            dib = ImageWin.Dib(img)
+            dib.draw(hdc.GetHandleOutput(), 
+                    (printer_margins[0], printer_margins[1], 
+                     printer_margins[0] + print_width, 
+                     printer_margins[1] + print_height))
+            
+            hdc.EndPage()
+            hdc.EndDoc()
+            
+            # Cleanup
+            del hdc
+            
+            print("✓ Bitmap sent to printer")
+            return True
+            
+        except Exception as e:
+            print(f"Error printing bitmap: {e}")
+            return False
+    
+    def print_receipt(self, image_path: str, cut: bool = True) -> bool:
+        """Print receipt image"""
+        success = self.print_bitmap(image_path)
+        
+        if success and cut:
+            # Send cut command as raw data
+            # ESC/POS partial cut command
+            self.print_raw_text("\n\n\n\x1D\x56\x01")
+            
+        return success
+    
+    def test_print(self) -> bool:
+        """Test printer with simple output"""
+        test_text = """
+PRINTER TEST
+============
+HWASUNG HMK-072
+Windows Print Mode
+한글 출력 테스트
+
+Status: OK
+============
+
+
+
+"""
+        return self.print_raw_text(test_text)
+
+
+# Make it compatible with existing code
+class ThermalPrinter(WindowsThermalPrinter):
+    """Compatibility wrapper for existing thermal printer code"""
+    
+    def __init__(self, port: int = 0, baudrate: int = 19200, interface: str = 'SERIAL'):
+        # Ignore port/baudrate/interface - use Windows printer name
+        super().__init__("HWASUNG HMK-072")
+    
+    def connect(self) -> bool:
+        """Check if printer is available"""
+        return self.check_printer()
+    
+    def disconnect(self):
+        """No-op for Windows printing"""
+        pass
+    
+    def get_status(self) -> int:
+        """Get printer status"""
+        return 0 if self.is_connected else -1
+    
+    def print_text(self, text: str, encoding: str = 'cp949'):
+        """Print text string"""
+        return self.print_raw_text(text, encoding)
+    
+    def print_line(self, text: str = ""):
+        """Print text with newline"""
+        return self.print_raw_text(text + "\n")
+    
+    def set_align(self, align: int):
+        """No-op - alignment handled by Windows"""
+        pass
+    
+    def set_bold(self, bold: bool):
+        """No-op - bold handled by Windows"""
+        pass
+    
+    def set_text_size(self, width: int = 1, height: int = 1):
+        """No-op - size handled by Windows"""
+        pass
+    
+    def feed_lines(self, lines: int):
+        """Feed paper by number of lines"""
+        self.print_raw_text("\n" * lines)
+    
+    def cut_paper(self, mode: int = 1):
+        """Cut paper"""
+        self.print_raw_text("\x1D\x56\x01")  # Partial cut
+    
+    def print_image(self, image_path: str, line_count: int = 0):
+        """Print image file"""
+        return self.print_bitmap(image_path)
+
+
+if __name__ == "__main__":
+    # Test the printer
+    printer = ThermalPrinter()
+    
+    if printer.connect():
+        print("\n--- Testing Windows Thermal Printer ---")
+        
+        # Test 1: Simple text
+        print("Test 1: Simple text print")
+        if printer.test_print():
+            print("✓ Test print successful")
+        else:
+            print("✗ Test print failed")
+        
+        # Test 2: Bitmap
+        if os.path.exists("test_thermal.bmp"):
+            print("\nTest 2: Bitmap print")
+            if printer.print_bitmap("test_thermal.bmp"):
+                print("✓ Bitmap print successful")
+            else:
+                print("✗ Bitmap print failed")
