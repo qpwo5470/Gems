@@ -718,19 +718,14 @@ def monitor_chat_and_add_print_button(driver):
                             const contentWidth = containerRect.width;
                             const leftOffset = containerRect.left;
                             
-                            // Get the original button width first
-                            const originalBtnWidth = printImg.naturalWidth || 200; // fallback width
-                            const reducedWidth = originalBtnWidth * 0.5;
-                            const widthDifference = originalBtnWidth - reducedWidth;
-                            
                             // Apply absolute positioning to align with input area
-                            // Add margin-right to compensate for 50% size reduction plus additional 150px
+                            // Right edge of button aligns with right edge of input box
                             printBtnContainer.style.cssText = `
                                 display: flex;
                                 justify-content: flex-end;
                                 align-items: center;
                                 margin-bottom: 10px;
-                                margin-right: ${{widthDifference + 150}}px;
+                                margin-right: 0;
                                 padding: 0;
                                 width: ${{contentWidth}}px;
                                 position: relative;
