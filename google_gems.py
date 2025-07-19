@@ -592,7 +592,7 @@ def monitor_chat_and_add_print_button(driver):
                 printBtnContainer.id = 'gems-print-button-container';
                 printBtnContainer.style.cssText = `
                     display: flex;
-                    justify-content: flex-end;
+                    justify-content: center;
                     align-items: center;
                     margin-bottom: 10px;
                     padding: 0;
@@ -703,45 +703,24 @@ def monitor_chat_and_add_print_button(driver):
                         printBtnContainer.classList.add('pop-up-animation');
                     }}, 50);
                     
-                    // Wait a moment for layout to settle, then align properly
+                    // Wait a moment for layout to settle, then center properly
                     setTimeout(() => {{
-                        // Find the actual input area container
-                        const inputAreaContainer = document.querySelector('.input-area-container') || 
-                                                  document.querySelector('[class*="input-area"]') ||
-                                                  insertTarget;
+                        // Apply positioning to center button on page
+                        printBtnContainer.style.cssText = `
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            margin-bottom: 10px;
+                            padding: 0;
+                            width: 100%;
+                            position: relative;
+                            left: 0;
+                            right: 0;
+                            box-sizing: border-box;
+                            opacity: 1;
+                        `;
                         
-                        if (inputAreaContainer) {{
-                            const containerRect = inputAreaContainer.getBoundingClientRect();
-                            const containerStyle = window.getComputedStyle(inputAreaContainer);
-                            
-                            // Calculate the actual content width (excluding margins)
-                            const contentWidth = containerRect.width;
-                            const leftOffset = containerRect.left;
-                            
-                            // Apply absolute positioning to align with input area
-                            // Right edge of button aligns with right edge of input box
-                            printBtnContainer.style.cssText = `
-                                display: flex;
-                                justify-content: flex-end;
-                                align-items: center;
-                                margin-bottom: 10px;
-                                margin-right: 0;
-                                padding: 0;
-                                width: ${{contentWidth}}px;
-                                position: relative;
-                                left: ${{leftOffset}}px;
-                                box-sizing: border-box;
-                            `;
-                            
-                            // If the container uses margins for centering, match them
-                            if (containerStyle.marginLeft && containerStyle.marginLeft !== '0px') {{
-                                printBtnContainer.style.marginLeft = containerStyle.marginLeft;
-                                printBtnContainer.style.marginRight = containerStyle.marginRight;
-                                printBtnContainer.style.left = '0';
-                            }}
-                            
-                            console.log(`Button container aligned: width=${{contentWidth}}px`);
-                        }}
+                        console.log('Button centered on page');
                     }}, 100);  // Small delay to ensure layout is complete
                 }} else {{
                     // Fallback: try to find the chat area and append there
