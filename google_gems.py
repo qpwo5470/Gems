@@ -28,6 +28,13 @@ def setup_driver():
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
     chrome_options.add_experimental_option('useAutomationExtension', False)
     
+    # Add options for better Windows compatibility
+    if platform.system() == 'Windows':
+        chrome_options.add_argument('--disable-gpu')  # Disable GPU acceleration
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+        chrome_options.add_argument('--disable-software-rasterizer')
+    
     # Force fullscreen mode
     chrome_options.add_argument('--start-maximized')  # Start maximized
     if platform.system() == 'Windows':
@@ -1340,20 +1347,32 @@ def show_waiting_screen_and_continue(driver):
     monitor_chat_and_add_print_button(driver)
 
 def main():
+    # Print system info for debugging
+    print(f"Running on: {platform.system()} {platform.version()}")
+    print(f"Python version: {platform.python_version()}")
+    
     # Try to load credentials, but don't fail if they don't exist
     credentials = None
     try:
         credentials = load_credentials()
         print("Credentials loaded from file")
-    except:
-        print("No credentials file found - manual login will be required")
+    except Exception as e:
+        print(f"No credentials file found ({e}) - manual login will be required")
     
-    print("Setting up Chrome driver...")
-    driver = setup_driver()
-    
-    print("Chrome driver created successfully")
+    print("\nSetting up Chrome driver...")
+    try:
+        driver = setup_driver()
+        print("Chrome driver created successfully")
+    except Exception as e:
+        print(f"Failed to create Chrome driver: {e}")
+        print("\nTroubleshooting tips:")
+        print("1. Ensure Chrome browser is installed")
+        print("2. Run: pip install --upgrade selenium webdriver-manager")
+        print("3. Try running test_chrome_windows.py first")
+        raise
     
     try:
+        print("\nStarting login process...")
         login_to_google_gems(driver, credentials)
         
         # Show the waiting screen after successful login and handle the cycle

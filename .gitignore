@@ -22,6 +22,10 @@ test_receipt.png
 test_thermal_print.png
 *.bmp
 
+# Test files
+test_chrome_windows.py
+test_windows_print.py
+
 # IDE
 .idea/
 .vscode/
@@ -34,6 +38,7 @@ Thumbs.db
 
 # Logs
 *.log
+debug_output.txt
 
 # PyInstaller build artifacts
 build/
