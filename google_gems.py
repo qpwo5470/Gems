@@ -1025,11 +1025,11 @@ def monitor_chat_and_add_print_button(driver):
                     
                     # Check for print button click
                     if driver.execute_script("return window.printButtonClicked || false;"):
-                        print("Print button clicked detected, extracting conversation...")
+                        print("Print button clicked detected!")
                         
-                        # Extract conversation before navigating
+                        # Extract conversation text before navigating
+                        conversation_text = None
                         try:
-                            # Get all message elements
                             conversation_text = driver.execute_script("""
                                 // Try multiple selectors to find conversation elements
                                 const selectors = [
@@ -1059,38 +1059,43 @@ def monitor_chat_and_add_print_button(driver):
                                     }
                                 });
                                 
-                                console.log('DEBUG: Found elements:', allElements.size);
-                                console.log('DEBUG: Total text length:', fullText.length);
-                                console.log('DEBUG: First 200 chars:', fullText.substring(0, 200));
-                                
                                 return fullText;
                             """)
-                            
-                            # Parse the conversation
-                            if conversation_text:
-                                print(f"Got conversation text, length: {len(conversation_text)}")
-                                print(f"First 200 chars: {conversation_text[:200]}")
-                                print("Parsing conversation data...")
-                                parsed_data = parser.parse_and_save(conversation_text)
-                                print(f"Parsed data: {json.dumps(parsed_data, ensure_ascii=False, indent=2)}")
-                                
-                                # Generate receipt with name
-                                try:
-                                    printer = ReceiptPrinter()
-                                    printer.add_name_to_receipt(parsed_data, "thermal_print.png")
-                                except Exception as ex:
-                                    print(f"Error generating receipt: {ex}")
-                            else:
-                                print("No conversation text found!")
                         except Exception as e:
                             print(f"Error extracting conversation: {e}")
                         
                         driver.execute_script("window.printButtonClicked = false;")
-                        # Navigate using driver
+                        
+                        # Navigate to transition page IMMEDIATELY
+                        print("Navigating to transition page...")
                         if platform.system() == 'Windows':
                             driver.get(f"file:///{transition_path.replace(chr(92), '/')}")
                         else:
                             driver.get(f"file://{transition_path}")
+                        
+                        # Now do the heavy processing while user sees the transition animation
+                        if conversation_text:
+                            print(f"Processing conversation (length: {len(conversation_text)})...")
+                            
+                            # Parse with Gemini API (this takes time)
+                            try:
+                                print("Parsing conversation data with Gemini...")
+                                parsed_data = parser.parse_and_save(conversation_text)
+                                print(f"Parsed data: {json.dumps(parsed_data, ensure_ascii=False, indent=2)}")
+                                
+                                # Generate receipt image
+                                print("Generating receipt image...")
+                                printer = ReceiptPrinter()
+                                printer.add_name_to_receipt(parsed_data, "thermal_print.png")
+                                
+                                # Print to thermal printer
+                                print("Sending to thermal printer...")
+                                # The printer will automatically print when receipt is generated
+                                
+                            except Exception as ex:
+                                print(f"Error in processing: {ex}")
+                        else:
+                            print("No conversation text found!")
                         
                         # Wait for transition to complete
                         print("Waiting for transition to complete...")
