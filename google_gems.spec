@@ -12,7 +12,7 @@ datas = [
     ('waiting_screen.html', '.'),
     ('transition_screen.html', '.'),
     
-    # Resource folder - entire directory
+    # Resource folder - entire directory with all images and files
     ('res', 'res'),
     
     # Thermal printer SDK
@@ -21,8 +21,14 @@ datas = [
     ('thermal/windows SDK/bin/x86/HW_API.dll', 'thermal/windows SDK/bin/x86'),
     ('thermal/windows SDK/bin/x86/HwaUSB.dll', 'thermal/windows SDK/bin/x86'),
     
-    # CSV data file
-    ('res/GML25_F&B Menu.csv', 'res'),
+    # Configuration files - INCLUDE THE ACTUAL FILES
+    ('credentials.json', '.'),
+    ('gemini_api_key.txt', '.'),
+    
+    # Python modules that might be needed
+    ('gemini_parser.py', '.'),
+    ('receipt_printer.py', '.'),
+    ('windows_thermal_printer.py', '.'),
 ]
 
 # Hidden imports that might be missed
