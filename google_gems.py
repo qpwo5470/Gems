@@ -1412,8 +1412,8 @@ def show_waiting_screen(driver):
             # Check if we've navigated away from the waiting screen to the specific gem
             if "gemini.google.com/gem/" in current_url:
                 print("Continue button clicked! Navigated to Gems")
-                # Wait a bit for the gem to fully load
-                time.sleep(3)
+                # Wait a moment for page to start loading
+                time.sleep(0.5)
                 break
             
             # Small delay to avoid excessive polling
@@ -1427,30 +1427,11 @@ def show_waiting_screen_and_continue(driver):
     """Show waiting screen and set up the page again when user continues"""
     show_waiting_screen(driver)
     
-    # The waiting screen will show overlay and navigate to the gem when clicked
-    # Overlay is already showing from the HTML, so we just need to maintain it
-    
-    # Keep the existing overlay or create a new one if needed
-    try:
-        # Check if overlay exists from navigation
-        has_overlay = driver.execute_script("return !!document.getElementById('gems-transition-overlay');")
-        if not has_overlay:
-            show_transition_overlay(driver)
-    except:
-        # If check fails, show overlay anyway
-        show_transition_overlay(driver)
-    
-    # Inject CSS after navigation from waiting screen
+    # Immediately inject CSS to hide elements
     inject_hiding_css(driver)
     
-    # Hide UI elements while overlay is showing
+    # Hide UI elements as fast as possible
     close_sidebar_menu(driver)
-    
-    # Wait for elements to be hidden
-    time.sleep(2)
-    
-    # Remove overlay
-    remove_transition_overlay(driver)
     
     # Start monitoring chat for "Gems Station" keyword again
     monitor_chat_and_add_print_button(driver)
