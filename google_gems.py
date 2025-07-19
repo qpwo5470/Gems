@@ -1165,6 +1165,76 @@ def inject_hiding_css(driver):
     """
     driver.execute_script(css_injection_script)
 
+def show_transition_overlay(driver):
+    """Show a fullscreen transition overlay while elements are being hidden"""
+    overlay_script = """
+    // Create fullscreen overlay with transition animation
+    const overlay = document.createElement('div');
+    overlay.id = 'gems-transition-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: white;
+        z-index: 999999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 1;
+        transition: opacity 0.5s ease-out;
+    `;
+    
+    // Add the transition animation content
+    overlay.innerHTML = `
+        <div style="text-align: center;">
+            <div class="loader" style="
+                width: 80px;
+                height: 80px;
+                border: 8px solid #f3f3f3;
+                border-top: 8px solid #3498db;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 20px;
+            "></div>
+            <h2 style="font-family: Arial, sans-serif; color: #333; margin: 0;">잠시만 기다려주세요...</h2>
+        </div>
+    `;
+    
+    // Add animation keyframes
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Add overlay to body
+    document.body.appendChild(overlay);
+    
+    // Function to remove overlay
+    window.removeTransitionOverlay = function() {
+        const overlay = document.getElementById('gems-transition-overlay');
+        if (overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.remove();
+            }, 500);
+        }
+    };
+    
+    console.log('Transition overlay shown');
+    """
+    driver.execute_script(overlay_script)
+
+def remove_transition_overlay(driver):
+    """Remove the transition overlay"""
+    driver.execute_script("if (window.removeTransitionOverlay) window.removeTransitionOverlay();")
+    print("Transition overlay removed")
+
 def open_gourmet_gems(driver):
     """Directly navigate to the specific gem URL"""
     try:
@@ -1176,17 +1246,22 @@ def open_gourmet_gems(driver):
         gem_url = "https://gemini.google.com/gem/d43c6f8224ff"
         driver.get(gem_url)
         
-        # Inject CSS again immediately after navigation
+        # Show transition overlay immediately
+        show_transition_overlay(driver)
+        
+        # Inject CSS again after navigation
         inject_hiding_css(driver)
         
-        # Wait for the gem to load
-        print("Waiting for gem to load...")
-        time.sleep(5)
+        # Hide UI elements while overlay is showing
+        close_sidebar_menu(driver)
+        
+        # Wait a bit for elements to be hidden
+        time.sleep(2)
+        
+        # Remove overlay after elements are hidden
+        remove_transition_overlay(driver)
         
         print(f"Successfully navigated to: {gem_url}")
-        
-        # Close the left sidebar menu
-        close_sidebar_menu(driver)
         
         # Start monitoring chat for "Gems Station" keyword
         monitor_chat_and_add_print_button(driver)
@@ -1342,18 +1417,20 @@ def show_waiting_screen_and_continue(driver):
     show_waiting_screen(driver)
     
     # The waiting screen will navigate to the gem when clicked
-    # Inject CSS immediately after navigation from waiting screen
+    # Show transition overlay immediately after navigation
+    show_transition_overlay(driver)
+    
+    # Inject CSS after navigation from waiting screen
     inject_hiding_css(driver)
     
-    # Wait for the gem page to load
-    time.sleep(3)
-    
-    # Close the sidebar immediately and continuously
+    # Hide UI elements while overlay is showing
     close_sidebar_menu(driver)
     
-    # Hide elements again after a short delay in case they load async
-    time.sleep(1)
-    close_sidebar_menu(driver)
+    # Wait for elements to be hidden
+    time.sleep(2)
+    
+    # Remove overlay
+    remove_transition_overlay(driver)
     
     # Start monitoring chat for "Gems Station" keyword again
     monitor_chat_and_add_print_button(driver)

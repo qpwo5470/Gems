@@ -1,0 +1,14 @@
+# Requirements for building on Windows
+# Install with: pip install -r requirements-build.txt
+
+# All runtime requirements
+-r requirements.txt
+
+# Windows-specific requirements
+pywin32==306
+
+# Build tools
+pyinstaller==6.3.0
+
+# Optional: for creating Windows installer
+# pynsist==2.8
