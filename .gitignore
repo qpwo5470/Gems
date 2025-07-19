@@ -18,6 +18,9 @@ gemini_api_key.txt
 # Generated files
 parsed_conversation.json
 thermal_print.png
+test_receipt.png
+test_thermal_print.png
+*.bmp
 
 # IDE
 .idea/

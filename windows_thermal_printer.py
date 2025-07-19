@@ -199,6 +199,20 @@ Status: OK
 class ThermalPrinter(WindowsThermalPrinter):
     """Compatibility wrapper for existing thermal printer code"""
     
+    # Constants for compatibility
+    INT_SERIAL = 1
+    INT_USB = 0
+    
+    # Alignment constants
+    ALIGN_LEFT = 0
+    ALIGN_CENTER = 1
+    ALIGN_RIGHT = 2
+    
+    # Cut modes
+    CUT_FULL = 0
+    CUT_PARTIAL = 1
+    CUT_BM = 2
+    
     def __init__(self, port: int = 0, baudrate: int = 19200, interface: str = 'SERIAL'):
         # Ignore port/baudrate/interface - use Windows printer name
         super().__init__("HWASUNG HMK-072")
