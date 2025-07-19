@@ -1186,21 +1186,32 @@ def show_transition_overlay(driver):
         transition: opacity 0.5s ease-out;
     `;
     
-    // Add the transition animation content
-    overlay.innerHTML = `
-        <div style="text-align: center;">
-            <div class="loader" style="
-                width: 80px;
-                height: 80px;
-                border: 8px solid #f3f3f3;
-                border-top: 8px solid #3498db;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-                margin: 0 auto 20px;
-            "></div>
-            <h2 style="font-family: Arial, sans-serif; color: #333; margin: 0;">잠시만 기다려주세요...</h2>
-        </div>
+    // Create content container
+    const container = document.createElement('div');
+    container.style.textAlign = 'center';
+    
+    // Create loader
+    const loader = document.createElement('div');
+    loader.className = 'loader';
+    loader.style.cssText = `
+        width: 80px;
+        height: 80px;
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
     `;
+    
+    // Create text
+    const text = document.createElement('h2');
+    text.style.cssText = 'font-family: Arial, sans-serif; color: #333; margin: 0;';
+    text.textContent = '잠시만 기다려주세요...';
+    
+    // Assemble elements
+    container.appendChild(loader);
+    container.appendChild(text);
+    overlay.appendChild(container);
     
     // Add animation keyframes
     const style = document.createElement('style');

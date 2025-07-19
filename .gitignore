@@ -50,3 +50,4 @@ __pycache__/
 /thermal/windows SDK/Windows API 매뉴얼.pdf
 /thermal/HMK-072시리즈 통합 매뉴얼.pdf
 /gemini_api_key.txt.example
+/.venv/
