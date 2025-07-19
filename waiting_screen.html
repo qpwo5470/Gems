@@ -81,8 +81,62 @@
 
     <script>
         function continueToGems() {
-            // Navigate directly to the gem
-            window.location.href = 'https://gemini.google.com/gem/d43c6f8224ff';
+            // Show overlay immediately before navigation
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background-color: white;
+                z-index: 999999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            `;
+            
+            // Create content container
+            const container = document.createElement('div');
+            container.style.textAlign = 'center';
+            
+            // Create loader
+            const loader = document.createElement('div');
+            loader.style.cssText = `
+                width: 80px;
+                height: 80px;
+                border: 8px solid #f3f3f3;
+                border-top: 8px solid #3498db;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 20px;
+            `;
+            
+            // Create text
+            const text = document.createElement('h2');
+            text.style.cssText = 'font-family: Arial, sans-serif; color: #333; margin: 0;';
+            text.textContent = '잠시만 기다려주세요...';
+            
+            // Add animation keyframes
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Assemble and show overlay
+            container.appendChild(loader);
+            container.appendChild(text);
+            overlay.appendChild(container);
+            document.body.appendChild(overlay);
+            
+            // Navigate after a tiny delay to ensure overlay is visible
+            setTimeout(() => {
+                window.location.href = 'https://gemini.google.com/gem/d43c6f8224ff';
+            }, 50);
         }
         
         // Handle keyboard shortcuts

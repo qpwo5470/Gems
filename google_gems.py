@@ -1427,9 +1427,18 @@ def show_waiting_screen_and_continue(driver):
     """Show waiting screen and set up the page again when user continues"""
     show_waiting_screen(driver)
     
-    # The waiting screen will navigate to the gem when clicked
-    # Show transition overlay immediately after navigation
-    show_transition_overlay(driver)
+    # The waiting screen will show overlay and navigate to the gem when clicked
+    # Overlay is already showing from the HTML, so we just need to maintain it
+    
+    # Keep the existing overlay or create a new one if needed
+    try:
+        # Check if overlay exists from navigation
+        has_overlay = driver.execute_script("return !!document.getElementById('gems-transition-overlay');")
+        if not has_overlay:
+            show_transition_overlay(driver)
+    except:
+        # If check fails, show overlay anyway
+        show_transition_overlay(driver)
     
     # Inject CSS after navigation from waiting screen
     inject_hiding_css(driver)
