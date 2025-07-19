@@ -114,9 +114,12 @@ class GeminiParser:
 
 중요: 
 - "번호"는 반드시 참고 데이터의 '번호' 컬럼에 있는 1-24 사이의 숫자여야 합니다.
-- 예: Bold Creator = 1, Unexpected Innovator = 2, Future Seeker = 3, ... Global Explorer = 24
-- 대화에서 언급된 타입명을 참고 데이터에서 찾아 해당하는 번호를 사용하세요.
-- 음료나 음식이 언급되면, 해당 음료/음식이 매칭된 타입 번호를 사용하세요.
+- 대화에서 언급된 음료와 푸드의 조합으로 정확한 타입을 찾으세요.
+- 예시:
+  - Negroni + 코랄 소스의 랍스터 테일 = 타입 1 (Bold Creator)
+  - 서빈버스트 + 망고크림새우 = 타입 12 (Universal Pleaser)
+  - Blue Summer Cooler + 로스트 비프 토스트 = 타입 16 (Serene Provider)
+- 반드시 음료와 푸드가 같은 타입 번호에 속하는지 확인하세요.
 
 대화에서 직접 언급되지 않은 정보는 위의 참고 데이터에서 매칭되는 타입 정보를 사용하세요.
 JSON만 응답하고 다른 설명은 포함하지 마세요.
