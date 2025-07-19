@@ -35,13 +35,13 @@ class ThermalPrinter:
     LANG_KO = 13
     LANG_EN = 0
     
-    def __init__(self, port: int = 1, baudrate: int = 19200, interface: str = 'USB'):
+    def __init__(self, port: int = 0, baudrate: int = 19200, interface: str = 'SERIAL'):
         """Initialize thermal printer on Windows
         
         Args:
-            port: Port number (1 for USB001, 2 for USB002, etc.)
+            port: Port number (0 for LPT0, 1 for LPT1, or USB001, etc.)
             baudrate: Communication speed (default 19200 for HMK-072)
-            interface: 'USB' or 'SERIAL' (LPT)
+            interface: 'USB' or 'SERIAL' (LPT) - default is 'SERIAL' for LPT
         """
         self.port = port
         self.baudrate = baudrate
@@ -110,10 +110,10 @@ class ThermalPrinter:
         """Open connection to printer"""
         try:
             # printerOpen(interface_type, port, model, flowcontrol, baudrate)
-            # For USB: interface_type=USB(0), port=1 for USB001, flowcontrol=XON_XOFF(0)
+            # For LPT: interface_type=SERIAL(1), port=0 for LPT0, flowcontrol=XON_XOFF(0)
             result = self.dll.printerOpen(
-                self.interface,   # USB or Serial interface
-                self.port,        # 1 for USB001, 2 for USB002, etc.
+                self.interface,   # USB or Serial interface  
+                self.port,        # 0 for LPT0, 1 for LPT1, etc.
                 self.model.encode('utf-8'),
                 self.XON_XOFF,    # Flow control
                 self.baudrate
@@ -249,8 +249,8 @@ class ThermalPrinter:
 
 # Test function
 if __name__ == "__main__":
-    # Example usage - USB interface on USB001
-    printer = ThermalPrinter(port=1, baudrate=19200, interface='USB')
+    # Example usage - LPT0 interface
+    printer = ThermalPrinter(port=0, baudrate=19200, interface='SERIAL')
     
     if printer.connect():
         # Test text printing
