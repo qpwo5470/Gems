@@ -125,7 +125,11 @@ class ReceiptPrinter:
             
             # Print to thermal printer if available
             if self.thermal_printer:
-                self.print_to_thermal(output_path)
+                # Try image printing first
+                if not self.print_to_thermal(output_path):
+                    # If image fails, try text printing
+                    print("Image printing failed, trying text mode...")
+                    self.print_text_receipt(data)
             
             return output_path
             
@@ -149,6 +153,20 @@ class ReceiptPrinter:
             return success
         except Exception as e:
             print(f"Thermal printing error: {e}")
+            return False
+    
+    def print_text_receipt(self, data: Dict) -> bool:
+        """Print receipt as text instead of image"""
+        if not self.thermal_printer:
+            print("Thermal printer not available")
+            return False
+            
+        try:
+            from receipt_text_printer import ReceiptTextPrinter
+            text_printer = ReceiptTextPrinter()
+            return text_printer.print_receipt_text(data, self.thermal_printer)
+        except Exception as e:
+            print(f"Text printing error: {e}")
             return False
 
 
