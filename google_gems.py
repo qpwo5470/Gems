@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
@@ -26,6 +27,13 @@ def setup_driver():
     chrome_options.add_argument('--disable-blink-features=AutomationControlled')
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
     chrome_options.add_experimental_option('useAutomationExtension', False)
+    
+    # Force fullscreen mode
+    chrome_options.add_argument('--start-maximized')  # Start maximized
+    if platform.system() == 'Windows':
+        chrome_options.add_argument('--kiosk')  # Kiosk mode for Windows fullscreen
+    else:
+        chrome_options.add_argument('--start-fullscreen')  # Fullscreen for other OS
     
     # Use a persistent user data directory to maintain login state
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -107,15 +115,18 @@ def setup_driver():
     
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     
-    # Backup method to ensure fullscreen
+    # Ensure fullscreen/maximized window
+    print("Setting window to fullscreen...")
     try:
-        driver.fullscreen_window()
-    except:
-        # If fullscreen_window() doesn't work, try maximize
-        try:
+        if platform.system() == 'Windows':
+            # For Windows, just maximize (kiosk mode is already set)
             driver.maximize_window()
-        except:
-            pass
+        else:
+            # For other OS, try fullscreen
+            driver.fullscreen_window()
+    except Exception as e:
+        print(f"Note: Could not set fullscreen: {e}")
+        # Continue anyway
     
     return driver
 
@@ -1339,6 +1350,8 @@ def main():
     
     print("Setting up Chrome driver...")
     driver = setup_driver()
+    
+    print("Chrome driver created successfully")
     
     try:
         login_to_google_gems(driver, credentials)
