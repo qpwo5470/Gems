@@ -127,31 +127,64 @@ class WindowsThermalPrinter:
             
             # Open image
             img = Image.open(image_path)
-            print(f"Printing image: {img.size[0]}x{img.size[1]} pixels")
+            print(f"Original image: {img.size[0]}x{img.size[1]} pixels")
+            
+            # Auto-crop left white space for thermal printer
+            # Find the leftmost non-white pixel
+            if img.mode != 'RGB':
+                img_rgb = img.convert('RGB')
+            else:
+                img_rgb = img
+                
+            width, height = img.size
+            left_crop = 0
+            
+            # Scan from left to find first non-white column
+            for x in range(width):
+                for y in range(0, height, 10):  # Sample every 10 pixels for speed
+                    r, g, b = img_rgb.getpixel((x, y))
+                    # If not white (allowing some tolerance)
+                    if r < 250 or g < 250 or b < 250:
+                        left_crop = x
+                        break
+                if left_crop > 0:
+                    break
+            
+            # Crop the image if white space found
+            if left_crop > 0:
+                print(f"Cropping {left_crop}px from left side")
+                img = img.crop((left_crop, 0, width, height))
+                print(f"Cropped image: {img.size[0]}x{img.size[1]} pixels")
             
             # Start print job
             hdc.StartDoc("Bitmap Print")
             hdc.StartPage()
             
-            # Calculate printer resolution
-            printer_size = hdc.GetDeviceCaps(110), hdc.GetDeviceCaps(111)  # PHYSICALWIDTH, PHYSICALHEIGHT
-            printer_margins = hdc.GetDeviceCaps(112), hdc.GetDeviceCaps(113)  # PHYSICALOFFSETX, PHYSICALOFFSETY
-            printer_area = (
-                printer_size[0] - 2 * printer_margins[0],
-                printer_size[1] - 2 * printer_margins[1]
-            )
+            # Get printer capabilities
+            printer_width = hdc.GetDeviceCaps(110)   # PHYSICALWIDTH
+            printer_height = hdc.GetDeviceCaps(111)  # PHYSICALHEIGHT
+            offset_x = hdc.GetDeviceCaps(112)       # PHYSICALOFFSETX
+            offset_y = hdc.GetDeviceCaps(113)       # PHYSICALOFFSETY
             
-            # Scale image to fit printer width (maintain aspect ratio)
+            print(f"Printer physical: {printer_width}x{printer_height}")
+            print(f"Printer offset: {offset_x}, {offset_y}")
+            
+            # For thermal printers, we want to use full width starting from 0
+            # Most thermal printers have no left margin when using raw printing
             img_ratio = img.size[0] / img.size[1]
-            print_width = printer_area[0]
+            
+            # Use full printer width
+            print_width = printer_width
             print_height = int(print_width / img_ratio)
             
             # Convert to Windows DIB and print
             dib = ImageWin.Dib(img)
+            
+            # Print from left edge (image is already cropped)
             dib.draw(hdc.GetHandleOutput(), 
-                    (printer_margins[0], printer_margins[1], 
-                     printer_margins[0] + print_width, 
-                     printer_margins[1] + print_height))
+                    (0, 0,
+                     print_width,
+                     print_height))
             
             hdc.EndPage()
             hdc.EndDoc()
