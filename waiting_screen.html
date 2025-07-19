@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gems 대기화면</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('res/Gems_대기화면_bg.png');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: #000;
+        }
+        
+        /* Alternative: cover the entire screen */
+        .container.cover {
+            background-size: cover;
+        }
+        
+        .continue-button {
+            position: absolute;
+            /* Position at 79.2% from left (1520/1920), 76.85% from top (830/1080 assuming 16:9) */
+            left: 79.2%;
+            top: 76.85%;
+            transform: translate(-50%, -50%);
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            /* Scale button based on viewport */
+            width: 10vw;
+            height: auto;
+            /* Remove blue outline/stroke when clicked */
+            outline: none;
+        }
+        
+        .continue-button:focus {
+            outline: none;
+        }
+        
+        .continue-button:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+        
+        .continue-button:active {
+            transform: translate(-50%, -50%) scale(0.95);
+        }
+        
+        .continue-button img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container"></div>
+    <button class="continue-button" id="continueBtn" onclick="continueToGems()">
+        <img src="res/Gems_대기화면_btn.png" alt="Continue Button">
+    </button>
+
+    <script>
+        function continueToGems() {
+            // Navigate directly to the gem
+            window.location.href = 'https://gemini.google.com/gem/d43c6f8224ff';
+        }
+        
+        // Handle keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            // Allow Enter or Space to trigger the button
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                continueToGems();
+            }
+        });
+        
+        // Adjust button size based on screen size
+        function adjustButtonSize() {
+            const button = document.querySelector('.continue-button');
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            
+            // Assuming original design was for 1920x1080
+            // Button should be proportional to screen size
+            const baseWidth = 1920;
+            const buttonBaseSize = 192; // ~10% of base width
+            
+            const scaleFactor = vw / baseWidth;
+            const buttonSize = buttonBaseSize * scaleFactor;
+            
+            button.style.width = buttonSize + 'px';
+        }
+        
+        // Focus the button for keyboard accessibility
+        window.addEventListener('load', function() {
+            document.getElementById('continueBtn').focus();
+            adjustButtonSize();
+        });
+        
+        // Readjust on window resize
+        window.addEventListener('resize', adjustButtonSize);
+        
+        // Optional: Toggle between contain and cover
+        // Uncomment if you want to use cover instead of contain
+        // document.querySelector('.container').classList.add('cover');
+    </script>
+</body>
+</html>

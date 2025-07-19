@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Chrome user data directory
+chrome_user_data/
+
+# Credentials
+credentials.json
+gemini_api_key.txt
+
+# Generated files
+parsed_conversation.json
+thermal_print.png
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

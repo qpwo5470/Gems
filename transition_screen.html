@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gems Transition</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+        }
+        
+        #transition-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        #transition-gif {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Try video first, fallback to GIF -->
+    <video id="transition-video" autoplay muted>
+        <source src="res/Gems 트랜지션.mp4" type="video/mp4">
+    </video>
+    <img id="transition-gif" src="res/Gems 트랜지션.gif" alt="Transition">
+    
+    <script>
+        const video = document.getElementById('transition-video');
+        const gif = document.getElementById('transition-gif');
+        
+        // If video fails to load, use GIF
+        video.onerror = function() {
+            video.style.display = 'none';
+            gif.style.display = 'block';
+            
+            // For GIF, set a timer to redirect (estimate 3 seconds)
+            setTimeout(function() {
+                // Set flag for Python to detect
+                window.transitionComplete = true;
+            }, 3000);
+        };
+        
+        // When video ends, redirect to waiting screen
+        video.onended = function() {
+            // Set flag for Python to detect
+            window.transitionComplete = true;
+        };
+        
+        // If video loads successfully
+        video.onloadeddata = function() {
+            gif.style.display = 'none';
+        };
+    </script>
+</body>
+</html>
