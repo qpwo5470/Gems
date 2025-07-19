@@ -40,22 +40,35 @@ def convert_to_bitmap(input_path: str, output_path: str = None) -> str:
         print(f"Error converting to bitmap: {e}")
         return None
 
+def get_thermal_printer_width():
+    """Get standard thermal printer width in pixels
+    
+    Common widths:
+    - 58mm printer: 384 pixels
+    - 80mm printer: 576 pixels
+    """
+    # You can adjust this based on your printer model
+    # HMK-072 is typically 80mm
+    return 576
+
 def create_test_bitmap():
     """Create a simple test bitmap"""
     # Create a simple black and white image
-    img = Image.new('1', (384, 200), 1)  # 384 is common thermal printer width
+    width = get_thermal_printer_width()
+    img = Image.new('1', (width, 200), 1)  # Use printer width
     
     # Draw some test content
     from PIL import ImageDraw, ImageFont
     draw = ImageDraw.Draw(img)
     
     # Draw rectangle border
-    draw.rectangle([0, 0, 383, 199], outline=0, width=2)
+    draw.rectangle([0, 0, width-1, 199], outline=0, width=2)
     
     # Draw text (will use default font)
-    draw.text((192, 50), "THERMAL PRINTER TEST", anchor="mm", fill=0)
-    draw.text((192, 100), "HMK-072", anchor="mm", fill=0)
-    draw.text((192, 150), "Bitmap Mode", anchor="mm", fill=0)
+    center_x = width // 2
+    draw.text((center_x, 50), "THERMAL PRINTER TEST", anchor="mm", fill=0)
+    draw.text((center_x, 100), "HMK-072", anchor="mm", fill=0)
+    draw.text((center_x, 150), f"Width: {width}px", anchor="mm", fill=0)
     
     # Save
     img.save("test_thermal.bmp", "BMP")
