@@ -123,11 +123,12 @@ def setup_driver():
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     
     # Ensure fullscreen/maximized window
-    print("Setting window to fullscreen...")
+    print("Setting window to fullscreen/maximized...")
     try:
         if platform.system() == 'Windows':
-            # For Windows, just maximize (kiosk mode is already set)
-            driver.maximize_window()
+            # On Windows, kiosk mode is already set via Chrome options
+            # Don't try to maximize again as it conflicts with kiosk mode
+            print("Using kiosk mode on Windows")
         else:
             # For other OS, try fullscreen
             driver.fullscreen_window()
