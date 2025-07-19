@@ -54,7 +54,7 @@ hiddenimports += collect_submodules('google.generativeai')
 hiddenimports += collect_submodules('google.ai')
 
 a = Analysis(
-    ['google_gems.py'],
+    ['run_gems_windows.py'],
     pathex=[current_dir],
     binaries=[],
     datas=datas,
