@@ -13,6 +13,7 @@ import urllib.parse
 import base64
 import threading
 import random
+import platform
 from gemini_parser import GeminiParser
 from receipt_printer import ReceiptPrinter
 
@@ -53,22 +54,56 @@ def setup_driver():
     
     # Always use webdriver-manager to ensure compatibility
     print("Downloading/verifying compatible ChromeDriver...")
-    driver_path = ChromeDriverManager().install()
-    
-    # Fix the path if it's pointing to the wrong file
-    if driver_path.endswith('THIRD_PARTY_NOTICES.chromedriver'):
-        driver_path = driver_path.replace('THIRD_PARTY_NOTICES.chromedriver', 'chromedriver')
-    
-    # Make sure the chromedriver has execute permissions
-    import subprocess
     try:
-        subprocess.run(['chmod', '+x', driver_path], check=True)
-        print(f"Fixed permissions for: {driver_path}")
+        driver_path = ChromeDriverManager().install()
+        print(f"ChromeDriver installed at: {driver_path}")
+        
+        # Fix the path if it's pointing to the wrong file
+        if driver_path.endswith('THIRD_PARTY_NOTICES.chromedriver'):
+            driver_path = driver_path.replace('THIRD_PARTY_NOTICES.chromedriver', 'chromedriver')
+        
+        # On Windows, check for .exe extension
+        if platform.system() == 'Windows':
+            if not driver_path.endswith('.exe'):
+                # Check if .exe version exists
+                exe_path = driver_path + '.exe'
+                if os.path.exists(exe_path):
+                    driver_path = exe_path
+                else:
+                    # Look for chromedriver.exe in the same directory
+                    driver_dir = os.path.dirname(driver_path)
+                    exe_in_dir = os.path.join(driver_dir, 'chromedriver.exe')
+                    if os.path.exists(exe_in_dir):
+                        driver_path = exe_in_dir
+        
+        print(f"Using ChromeDriver: {driver_path}")
+        
+        # Make sure the chromedriver has execute permissions (not needed on Windows)
+        if platform.system() != 'Windows':
+            import subprocess
+            try:
+                subprocess.run(['chmod', '+x', driver_path], check=True)
+                print(f"Fixed permissions for: {driver_path}")
+            except Exception as e:
+                print(f"Warning: Could not fix permissions: {e}")
+        
+        service = Service(driver_path)
+        
     except Exception as e:
-        print(f"Warning: Could not fix permissions: {e}")
+        print(f"Error with ChromeDriverManager: {e}")
+        print("Trying alternative approach...")
+        # Try without specifying executable path
+        service = Service()
     
-    service = Service(driver_path)
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+    try:
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+    except Exception as e:
+        print(f"Failed to create Chrome driver: {e}")
+        print("\nTroubleshooting steps:")
+        print("1. Make sure Google Chrome is installed")
+        print("2. Try updating webdriver-manager: pip install --upgrade webdriver-manager")
+        print("3. Or download ChromeDriver manually from: https://chromedriver.chromium.org/")
+        raise
     
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     
