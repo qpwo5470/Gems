@@ -611,12 +611,14 @@ def monitor_chat_and_add_print_button(driver):
                     padding: 0;
                     z-index: 1000;
                     outline: none;
+                    width: 150px;
+                    height: auto;
                 `;
                 
-                // Create image element with half size
+                // Create image element that fills the button
                 const printImg = document.createElement('img');
                 printImg.src = 'data:image/png;base64,{img_base64}';
-                printImg.style.cssText = 'width: 50%; height: 50%; display: block;';
+                printImg.style.cssText = 'width: 100%; height: auto; display: block;';
                 printImg.alt = 'Print';
                 
                 printBtn.appendChild(printImg);
