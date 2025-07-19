@@ -223,12 +223,22 @@ class ThermalPrinter:
                 return False
         
         try:
+            # Convert to bitmap if needed
+            if image_path.lower().endswith('.png'):
+                from bitmap_converter import convert_to_bitmap
+                bmp_path = convert_to_bitmap(image_path)
+                if bmp_path:
+                    image_path = bmp_path
+                else:
+                    print("Failed to convert to bitmap")
+                    return False
+            
             # Reset printer settings
             self.set_align(self.ALIGN_CENTER)
             self.set_bold(False)
             self.set_text_size(1, 1)
             
-            # Print the image
+            # Print the bitmap
             success = self.print_image(image_path)
             
             if success and cut:
