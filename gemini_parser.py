@@ -23,54 +23,49 @@ class GeminiParser:
             # Read CSV and handle potential empty columns
             df = pd.read_csv(self.csv_path, encoding='utf-8')
             
-            # Find columns that contain the actual data (skip empty column names)
-            actual_columns = [col for col in df.columns if not col.startswith('Unnamed')]
+            # Based on the CSV structure:
+            # Column 8 (Unnamed: 8): Type number
+            # Column 9 (Unnamed: 9): Color
+            # Column 10 (Unnamed: 10): Type name (타입명)
+            # Column 11 (Unnamed: 11): Type description (타입 설명)
+            # Column 12 (Unnamed: 12): Drink (음료)
+            # Column 13 (Unnamed: 13): Food (푸드)
+            # Column 14 (Unnamed: 14): Keywords (성향 키워드)
             
-            # Try to find the correct columns by looking for key terms
-            type_name_col = None
-            type_desc_col = None
-            drink_col = None
-            food_col = None
-            keyword_col = None
+            type_num_col = 'Unnamed: 8'  # Type number column
+            type_name_col = 'Unnamed: 10'
+            type_desc_col = 'Unnamed: 11'
+            drink_col = 'Unnamed: 12'
+            food_col = 'Unnamed: 13'
+            keyword_col = 'Unnamed: 14'
             
-            for col in df.columns:
-                if '타입명' in str(col):
-                    type_name_col = col
-                elif '타입 설명' in str(col):
-                    type_desc_col = col
-                elif '음료' in str(col) and '명칭' not in str(col):
-                    drink_col = col
-                elif '푸드' in str(col) and '명칭' not in str(col):
-                    food_col = col
-                elif '성향 키워드' in str(col):
-                    keyword_col = col
-            
-            if not all([type_name_col, type_desc_col, drink_col, food_col, keyword_col]):
-                # Fallback: try to use column positions
-                print("Warning: Could not find all columns by name, using positions")
-                cols = df.columns.tolist()
-                # Based on the CSV structure, approximate positions
-                for i, col in enumerate(cols):
-                    if i >= 10 and not type_name_col and df[col].notna().sum() > 10:
-                        type_name_col = col
-                    elif i >= 11 and not type_desc_col and df[col].notna().sum() > 10:
-                        type_desc_col = col
-                    elif i >= 12 and not drink_col and df[col].notna().sum() > 10:
-                        drink_col = col
-                    elif i >= 13 and not food_col and df[col].notna().sum() > 10:
-                        food_col = col
-                    elif i >= 14 and not keyword_col and df[col].notna().sum() > 10:
-                        keyword_col = col
+            # Verify columns exist
+            cols = df.columns.tolist()
+            if type_num_col not in cols or type_name_col not in cols:
+                print(f"Warning: Expected columns not found. Available columns: {cols}")
+                # Try alternative column detection
+                if len(cols) > 14:
+                    type_num_col = cols[8] if len(cols) > 8 else None
+                    type_name_col = cols[10] if len(cols) > 10 else None
+                    type_desc_col = cols[11] if len(cols) > 11 else None
+                    drink_col = cols[12] if len(cols) > 12 else None
+                    food_col = cols[13] if len(cols) > 13 else None
+                    keyword_col = cols[14] if len(cols) > 14 else None
             
             # Create a cleaned dataframe with found columns
             result_data = []
-            if type_name_col:
+            if type_name_col and type_num_col:
+                # Filter rows that have type names (skip header rows)
                 df_filtered = df[df[type_name_col].notna()]
                 for _, row in df_filtered.iterrows():
-                    if pd.notna(row.get(type_name_col, '')):
+                    type_name = str(row.get(type_name_col, ''))
+                    type_num = str(row.get(type_num_col, ''))
+                    
+                    # Skip rows without valid type names or numbers
+                    if pd.notna(type_name) and type_name and pd.notna(type_num) and type_num.isdigit():
                         result_data.append({
-                            '번호': str(row.get('No.', '')),
-                            '타입명': str(row.get(type_name_col, '')),
+                            '번호': type_num,  # Use the type number from column 8
+                            '타입명': type_name,
                             '타입 설명': str(row.get(type_desc_col, '')) if type_desc_col else '',
                             '음료': str(row.get(drink_col, '')) if drink_col else '',
                             '푸드': str(row.get(food_col, '')) if food_col else '',
@@ -106,13 +101,18 @@ class GeminiParser:
 다음 형식의 JSON으로 응답해주세요:
 {{
     "이름": "고객 이름 (없으면 '고객')",
-    "번호": "타입 번호 (참고 데이터의 번호 컬럼)",
+    "번호": "타입 번호 (1-8 중 하나, 참고 데이터의 '번호' 컬럼 값을 사용)",
     "타입명": "성격 타입 이름 (예: Bold Creator)",
     "타입_설명": "타입에 대한 설명",
     "성향_키워드": "성향 키워드들 (# 포함)",
     "음료": "추천된 음료",
     "푸드": "추천된 음식"
 }}
+
+중요: 
+- "번호"는 반드시 참고 데이터의 '번호' 컬럼에 있는 1-8 사이의 숫자여야 합니다.
+- 예: Bold Creator = 1, Unexpected Innovator = 2, Future Seeker = 3 등
+- 대화에서 언급된 타입명을 참고 데이터에서 찾아 해당하는 번호를 사용하세요.
 
 대화에서 직접 언급되지 않은 정보는 위의 참고 데이터에서 매칭되는 타입 정보를 사용하세요.
 JSON만 응답하고 다른 설명은 포함하지 마세요.
