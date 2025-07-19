@@ -96,8 +96,9 @@ class ReceiptPrinter:
             # Append "님을 위한" to the name
             full_name = name + "님을 위한"
             
-            # Get optimal font size for the full text
-            font = self.get_optimal_font_size(full_name, img.width - 20)  # Leave some margin
+            # Get optimal font size for the full text (max width 497px)
+            max_text_width = 497
+            font = self.get_optimal_font_size(full_name, max_text_width)
             
             # Get text dimensions
             bbox = font.getbbox(full_name)
