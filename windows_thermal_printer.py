@@ -101,7 +101,7 @@ class WindowsThermalPrinter:
             print(f"Error printing text: {e}")
             return False
     
-    def print_bitmap(self, image_path: str, compensate_margins: bool = True) -> bool:
+    def print_bitmap(self, image_path: str) -> bool:
         """Print bitmap image using Windows GDI"""
         if not self.is_connected:
             print("Printer not connected")
@@ -129,24 +129,15 @@ class WindowsThermalPrinter:
             img = Image.open(image_path)
             print(f"Original image: {img.size[0]}x{img.size[1]} pixels")
             
-            # Apply margin compensation if enabled
-            if compensate_margins:
-                from thermal_margin_fix import ThermalMarginFixer
-                
-                # Use measured margins for HMK-072
-                fixer = ThermalMarginFixer(left_margin_mm=6.2, right_margin_mm=4.5)
-                
-                # Create temporary adjusted image
-                import tempfile
-                with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
-                    adjusted_path = tmp.name
-                
-                adjusted_path = fixer.fix_image_for_printing(image_path, adjusted_path)
-                img = Image.open(adjusted_path)
-                
-                # Clean up temp file after printing
-                import atexit
-                atexit.register(lambda: os.remove(adjusted_path) if os.path.exists(adjusted_path) else None)
+            # Simple crop from left to compensate for printer margin
+            # Crop 7 pixels from the left side
+            crop_left = 7
+            width, height = img.size
+            
+            if width > crop_left:
+                img = img.crop((crop_left, 0, width, height))
+                print(f"Cropped {crop_left}px from left side")
+                print(f"New image size: {img.size[0]}x{img.size[1]} pixels")
             
             # Start print job
             hdc.StartDoc("Bitmap Print")
