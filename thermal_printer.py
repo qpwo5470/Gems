@@ -35,11 +35,11 @@ class ThermalPrinter:
     LANG_KO = 13
     LANG_EN = 0
     
-    def __init__(self, port: int = 0, baudrate: int = 19200, interface: str = 'USB'):
+    def __init__(self, port: int = 1, baudrate: int = 19200, interface: str = 'USB'):
         """Initialize thermal printer on Windows
         
         Args:
-            port: Port number (0 for USB, 1 for LPT1)
+            port: Port number (1 for USB001, 2 for USB002, etc.)
             baudrate: Communication speed (default 19200 for HMK-072)
             interface: 'USB' or 'SERIAL' (LPT)
         """
@@ -110,10 +110,10 @@ class ThermalPrinter:
         """Open connection to printer"""
         try:
             # printerOpen(interface_type, port, model, flowcontrol, baudrate)
-            # For USB: interface_type=USB(0), port=0, flowcontrol=XON_XOFF(0)
+            # For USB: interface_type=USB(0), port=1 for USB001, flowcontrol=XON_XOFF(0)
             result = self.dll.printerOpen(
                 self.interface,   # USB or Serial interface
-                self.port,        # 0 for USB, 1 for LPT1
+                self.port,        # 1 for USB001, 2 for USB002, etc.
                 self.model.encode('utf-8'),
                 self.XON_XOFF,    # Flow control
                 self.baudrate
@@ -121,7 +121,7 @@ class ThermalPrinter:
             
             self.is_connected = (result == 0)
             if self.is_connected:
-                interface_name = "USB" if self.interface == self.INT_USB else f"LPT{self.port}"
+                interface_name = f"USB{self.port:03d}" if self.interface == self.INT_USB else f"LPT{self.port}"
                 print(f"Connected to {self.model} on {interface_name}")
                 # Set Korean font for better text support
                 self.dll.inter_font(self.LANG_KO)
@@ -249,8 +249,8 @@ class ThermalPrinter:
 
 # Test function
 if __name__ == "__main__":
-    # Example usage - USB interface
-    printer = ThermalPrinter(port=0, baudrate=19200, interface='USB')
+    # Example usage - USB interface on USB001
+    printer = ThermalPrinter(port=1, baudrate=19200, interface='USB')
     
     if printer.connect():
         # Test text printing

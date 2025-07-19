@@ -38,8 +38,8 @@ class ReceiptPrinter:
         self.thermal_printer = None
         if enable_thermal and platform.system() == 'Windows' and ThermalPrinter:
             try:
-                # Use USB interface with port 0
-                self.thermal_printer = ThermalPrinter(port=0, baudrate=19200, interface='USB')
+                # Use USB interface with port 1 for USB001
+                self.thermal_printer = ThermalPrinter(port=1, baudrate=19200, interface='USB')
                 print("Thermal printer initialized")
             except Exception as e:
                 print(f"Failed to initialize thermal printer: {e}")
