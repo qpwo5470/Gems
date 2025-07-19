@@ -986,7 +986,10 @@ def monitor_chat_and_add_print_button(driver):
                             print(f"Error generating receipt: {e}")
                         
                         # Navigate to transition screen
-                        driver.get(f"file://{transition_path}")
+                        if platform.system() == 'Windows':
+                            driver.get(f"file:///{transition_path.replace(chr(92), '/')}")
+                        else:
+                            driver.get(f"file://{transition_path}")
                         
                         # Wait for transition to complete
                         print("Waiting for transition to complete...")
@@ -1066,7 +1069,10 @@ def monitor_chat_and_add_print_button(driver):
                         
                         driver.execute_script("window.printButtonClicked = false;")
                         # Navigate using driver
-                        driver.get(f"file://{transition_path}")
+                        if platform.system() == 'Windows':
+                            driver.get(f"file:///{transition_path.replace(chr(92), '/')}")
+                        else:
+                            driver.get(f"file://{transition_path}")
                         
                         # Wait for transition to complete
                         print("Waiting for transition to complete...")
@@ -1270,8 +1276,12 @@ def show_waiting_screen(driver):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     html_path = os.path.join(current_dir, "waiting_screen.html")
     
-    # Convert to file URL
-    file_url = "file://" + urllib.parse.quote(html_path.replace("\\", "/"))
+    # Convert to file URL - properly handle Windows paths
+    if platform.system() == 'Windows':
+        # Windows file URLs need three slashes
+        file_url = "file:///" + html_path.replace("\\", "/")
+    else:
+        file_url = "file://" + urllib.parse.quote(html_path.replace("\\", "/"))
     
     # Navigate to the waiting screen
     driver.get(file_url)
