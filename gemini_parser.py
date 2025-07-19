@@ -62,7 +62,10 @@ class GeminiParser:
                     type_num = str(row.get(type_num_col, ''))
                     
                     # Skip rows without valid type names or numbers
-                    if pd.notna(type_name) and type_name and pd.notna(type_num) and type_num.isdigit():
+                    # Only include rows where type number is between 1-24 (actual type definitions)
+                    if (pd.notna(type_name) and type_name and 
+                        pd.notna(type_num) and type_num.isdigit() and 
+                        1 <= int(type_num) <= 24):
                         result_data.append({
                             '번호': type_num,  # Use the type number from column 8
                             '타입명': type_name,
@@ -101,7 +104,7 @@ class GeminiParser:
 다음 형식의 JSON으로 응답해주세요:
 {{
     "이름": "고객 이름 (없으면 '고객')",
-    "번호": "타입 번호 (1-8 중 하나, 참고 데이터의 '번호' 컬럼 값을 사용)",
+    "번호": "타입 번호 (1-24 중 하나, 참고 데이터의 '번호' 컬럼 값을 사용)",
     "타입명": "성격 타입 이름 (예: Bold Creator)",
     "타입_설명": "타입에 대한 설명",
     "성향_키워드": "성향 키워드들 (# 포함)",
@@ -110,9 +113,10 @@ class GeminiParser:
 }}
 
 중요: 
-- "번호"는 반드시 참고 데이터의 '번호' 컬럼에 있는 1-8 사이의 숫자여야 합니다.
-- 예: Bold Creator = 1, Unexpected Innovator = 2, Future Seeker = 3 등
+- "번호"는 반드시 참고 데이터의 '번호' 컬럼에 있는 1-24 사이의 숫자여야 합니다.
+- 예: Bold Creator = 1, Unexpected Innovator = 2, Future Seeker = 3, ... Global Explorer = 24
 - 대화에서 언급된 타입명을 참고 데이터에서 찾아 해당하는 번호를 사용하세요.
+- 음료나 음식이 언급되면, 해당 음료/음식이 매칭된 타입 번호를 사용하세요.
 
 대화에서 직접 언급되지 않은 정보는 위의 참고 데이터에서 매칭되는 타입 정보를 사용하세요.
 JSON만 응답하고 다른 설명은 포함하지 마세요.

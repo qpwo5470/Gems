@@ -613,10 +613,10 @@ def monitor_chat_and_add_print_button(driver):
                     outline: none;
                 `;
                 
-                // Create image element with original size
+                // Create image element with half size
                 const printImg = document.createElement('img');
                 printImg.src = 'data:image/png;base64,{img_base64}';
-                printImg.style.cssText = 'width: auto; height: auto; display: block;';
+                printImg.style.cssText = 'width: 50%; height: 50%; display: block;';
                 printImg.alt = 'Print';
                 
                 printBtn.appendChild(printImg);
