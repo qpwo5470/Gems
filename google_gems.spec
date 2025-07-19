@@ -21,9 +21,6 @@ datas = [
     ('thermal/windows SDK/bin/x86/HW_API.dll', 'thermal/windows SDK/bin/x86'),
     ('thermal/windows SDK/bin/x86/HwaUSB.dll', 'thermal/windows SDK/bin/x86'),
     
-    # Configuration files (exclude sensitive ones)
-    ('gemini_api_key.txt.example', '.'),
-    
     # CSV data file
     ('res/GML25_F&B Menu.csv', 'res'),
 ]
