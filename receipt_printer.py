@@ -45,7 +45,7 @@ class ReceiptPrinter:
             except Exception as e:
                 print(f"Failed to initialize thermal printer: {e}")
     
-    def get_optimal_font_size(self, name, max_width):
+    def get_optimal_font_size(self, text, max_width):
         """Calculate optimal font size to fit text within max_width"""
         font_size = self.base_font_size
         
@@ -58,7 +58,7 @@ class ReceiptPrinter:
                     return font  # Default font doesn't support size adjustment
                 
                 # Get text width
-                bbox = font.getbbox(name)
+                bbox = font.getbbox(text)
                 text_width = bbox[2] - bbox[0]
                 
                 if text_width <= max_width:
