@@ -2,6 +2,7 @@ from PIL import Image, ImageDraw, ImageFont
 import json
 import os
 import platform
+from typing import Dict
 
 # Import thermal printer only on Windows
 if platform.system() == 'Windows':
