@@ -93,30 +93,25 @@ class ReceiptPrinter:
             img = Image.open(receipt_path)
             draw = ImageDraw.Draw(img)
             
-            # Get optimal font size
-            font = self.get_optimal_font_size(name, self.max_width)
+            # Append "님을 위한" to the name
+            full_name = name + "님을 위한"
             
-            # Use name as is (don't add "님")
-            full_name = name
+            # Get optimal font size for the full text
+            font = self.get_optimal_font_size(full_name, img.width - 20)  # Leave some margin
             
             # Get text dimensions
             bbox = font.getbbox(full_name)
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
             
-            # Calculate position (right-aligned at x=302, baseline at y=44)
-            # Right align: text should end at x=302
-            text_x = self.name_x - text_width
+            # Calculate center position
+            # Center align: text should be centered on the image
+            text_x = (img.width - text_width) // 2
             
-            # Baseline positioning: adjust y position based on font metrics
-            # PIL draws from top-left, so we need to adjust for baseline
+            # Keep the same Y position (baseline at y=66)
             text_y = self.name_y - text_height
             
-            # Ensure text doesn't go beyond bounding box
-            if text_x < self.bounding_x:
-                text_x = self.bounding_x
-            
-            # Draw the text
+            # Draw the text centered
             draw.text((text_x, text_y), full_name, font=font, fill='black')
             
             # Save the modified image
