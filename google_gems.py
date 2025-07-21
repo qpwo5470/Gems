@@ -1145,6 +1145,12 @@ def inject_hiding_css(driver):
 def show_transition_overlay(driver):
     """Show a fullscreen transition overlay while elements are being hidden"""
     overlay_script = """
+    // First remove any existing overlay
+    const existingOverlay = document.getElementById('gems-transition-overlay');
+    if (existingOverlay) {
+        existingOverlay.remove();
+    }
+    
     // Create fullscreen overlay with transition animation
     const overlay = document.createElement('div');
     overlay.id = 'gems-transition-overlay';
@@ -1154,7 +1160,7 @@ def show_transition_overlay(driver):
         left: 0;
         width: 100vw;
         height: 100vh;
-        background-color: white;
+        background-color: rgba(255, 255, 255, 0.95);
         z-index: 999999;
         display: flex;
         justify-content: center;
@@ -1219,9 +1225,52 @@ def show_transition_overlay(driver):
     driver.execute_script(overlay_script)
 
 def remove_transition_overlay(driver):
-    """Remove the transition overlay"""
-    driver.execute_script("if (window.removeTransitionOverlay) window.removeTransitionOverlay();")
-    print("Transition overlay removed")
+    """Remove the transition overlay and any lingering overlays"""
+    remove_overlay_script = """
+    // Remove our transition overlay
+    if (window.removeTransitionOverlay) {
+        window.removeTransitionOverlay();
+    }
+    
+    // Also remove any overlay by ID
+    const overlay = document.getElementById('gems-transition-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+    
+    // Remove any other overlays that might be blocking
+    const overlays = document.querySelectorAll('[style*="z-index: 999999"], [style*="z-index: 2147483647"]');
+    overlays.forEach(el => {
+        if (el.style.position === 'fixed' && 
+            el.style.width === '100vw' && 
+            el.style.height === '100vh') {
+            console.log('Removing blocking overlay:', el);
+            el.remove();
+        }
+    });
+    
+    // Also check for any dark backgrounds or overlays from Gemini itself
+    const darkOverlays = document.querySelectorAll('.cdk-overlay-backdrop, .cdk-overlay-dark-backdrop, [class*="backdrop"]');
+    darkOverlays.forEach(el => {
+        console.log('Removing dark backdrop:', el.className);
+        el.remove();
+    });
+    
+    // Remove any fixed position elements that cover the full screen
+    const fixedElements = document.querySelectorAll('*');
+    fixedElements.forEach(el => {
+        const style = window.getComputedStyle(el);
+        if (style.position === 'fixed' && 
+            style.width === '100vw' && 
+            style.height === '100vh' &&
+            style.zIndex && parseInt(style.zIndex) > 1000) {
+            console.log('Removing high z-index fixed element:', el);
+            el.remove();
+        }
+    });
+    """
+    driver.execute_script(remove_overlay_script)
+    print("Transition overlay and dark backgrounds removed")
 
 def find_first_gem_url(driver):
     """Find the first gem in the gems list and return its URL"""
@@ -1365,19 +1414,17 @@ def open_gourmet_gems(driver):
         
         driver.get(gem_url)
         
-        # Show transition overlay immediately
-        show_transition_overlay(driver)
-        
+        # Don't show overlay - just hide elements quickly
         # Inject CSS again after navigation
         inject_hiding_css(driver)
         
-        # Hide UI elements while overlay is showing
+        # Hide UI elements immediately
         close_sidebar_menu(driver)
         
-        # Wait a bit for elements to be hidden
+        # Wait a bit for page to stabilize
         time.sleep(2)
         
-        # Remove overlay after elements are hidden
+        # Clean up any remaining overlays or dark backgrounds
         remove_transition_overlay(driver)
         
         print(f"Successfully navigated to gem")
