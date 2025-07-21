@@ -355,6 +355,16 @@ def close_sidebar_menu(driver):
                 opacity: 0 !important;
             }
             
+            /* Add bottom padding to input area */
+            .input-area-container,
+            [class*="input-area"],
+            .query-input-container,
+            [class*="query-input"],
+            .composer-container,
+            [class*="composer"] {
+                padding-bottom: 40px !important;
+            }
+            
             /* Specific rule for recent chats that may load later */
             .bot-recent-chats,
             [class*="recent-chats"],
@@ -407,6 +417,28 @@ def close_sidebar_menu(driver):
         });
         
         console.log('Existing UI elements hidden');
+        
+        // Add bottom padding to input area to compensate for removed disclaimer
+        const inputAreaSelectors = [
+            '.input-area-container',
+            '[class*="input-area"]',
+            '.query-input-container',
+            '[class*="query-input"]',
+            '.composer-container',
+            '[class*="composer"]'
+        ];
+        
+        for (const selector of inputAreaSelectors) {
+            try {
+                const containers = document.querySelectorAll(selector);
+                containers.forEach(container => {
+                    if (container) {
+                        container.style.paddingBottom = '40px';
+                        console.log('Added bottom padding to:', selector);
+                    }
+                });
+            } catch (e) {}
+        }
         
         // Set up MutationObserver to hide response footers and delayed elements in real-time
         const observer = new MutationObserver((mutations) => {
@@ -1142,6 +1174,16 @@ def inject_hiding_css(driver):
             visibility: hidden !important;
             opacity: 0 !important;
             transition: none !important;
+        }
+        
+        /* Add bottom padding to input area */
+        .input-area-container,
+        [class*="input-area"],
+        .query-input-container,
+        [class*="query-input"],
+        .composer-container,
+        [class*="composer"] {
+            padding-bottom: 40px !important;
         }
     `;
     // Insert at the beginning of head to ensure it's applied early
