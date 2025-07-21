@@ -1288,45 +1288,52 @@ def find_first_gem_url(driver):
         else:
             print("Sidebar was already open")
         
-        # Now look for gem links
-        gem_url_script = """
-        // Look for gem links
-        const gemLinks = document.querySelectorAll('a[href*="/gem/"]');
-        if (gemLinks.length > 0) {
-            console.log('Found', gemLinks.length, 'gem links');
-            // Get the first gem that's not a create new gem link
-            for (let link of gemLinks) {
-                const href = link.getAttribute('href');
-                if (href && href.includes('/gem/') && !href.includes('create')) {
-                    return href.startsWith('http') ? href : 'https://gemini.google.com' + href;
-                }
-            }
-        }
-        
-        // Alternative: look for bot list items
+        # Now click on the first gem button
+        click_first_gem_script = """
+        // Look for bot list items
         const botItems = document.querySelectorAll('bot-list-item');
         if (botItems.length > 0) {
             console.log('Found', botItems.length, 'bot items');
+            
+            // Get the first bot item
             const firstBot = botItems[0];
-            const link = firstBot.querySelector('a');
-            if (link && link.href) {
-                return link.href;
+            
+            // Find the button with class 'bot-new-conversation-button'
+            const gemButton = firstBot.querySelector('button.bot-new-conversation-button');
+            
+            if (gemButton) {
+                console.log('Found gem button, clicking it');
+                // Get the gem name for logging
+                const gemName = gemButton.querySelector('.bot-name')?.textContent || 'Unknown';
+                console.log('Clicking on gem:', gemName);
+                
+                // Click the button
+                gemButton.click();
+                
+                return gemName;
             }
         }
         
-        console.log('No gems found');
+        console.log('No gem buttons found');
         return null;
         """
         
-        gem_url = driver.execute_script(gem_url_script)
+        gem_name = driver.execute_script(click_first_gem_script)
         
-        if gem_url:
-            print(f"Found first gem URL: {gem_url}")
-            # Store it globally for later use
-            driver.first_gem_url = gem_url
-            return gem_url
+        if gem_name:
+            print(f"Clicked on gem: {gem_name}")
+            # Wait for navigation to complete
+            time.sleep(3)
+            
+            # Get the current URL after clicking
+            current_url = driver.current_url
+            print(f"Navigated to: {current_url}")
+            
+            # Store the URL
+            driver.first_gem_url = current_url
+            return current_url
         else:
-            print("No gems found in the list")
+            print("Could not click on any gem")
             # Fallback to hardcoded URL if no gems found
             fallback_url = "https://gemini.google.com/gem/d43c6f8224ff"
             print(f"Using fallback URL: {fallback_url}")
