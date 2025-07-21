@@ -129,9 +129,17 @@ class WindowsThermalPrinter:
             img = Image.open(image_path)
             print(f"Original image: {img.size[0]}x{img.size[1]} pixels")
             
+            # Load crop amount from credentials.json or use default
+            crop_left = 88  # Default value
+            try:
+                import json
+                with open('credentials.json', 'r') as f:
+                    creds = json.load(f)
+                    crop_left = creds.get('printer_crop_left', 88)
+            except:
+                pass  # Use default if file not found or error
+            
             # Simple crop from left to compensate for printer margin
-            # Crop 88 pixels from the left side
-            crop_left = 88
             width, height = img.size
             
             if width > crop_left:

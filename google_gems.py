@@ -345,7 +345,11 @@ def close_sidebar_menu(driver):
             .uploader-button-container,
             toolbox-drawer,
             .mic-button-container,
-            .response-container-footer {
+            .response-container-footer,
+            hallucination-disclaimer,
+            .hallucination-disclaimer,
+            .capabilities-disclaimer,
+            [data-test-id="highly-regulated-disclaimer"] {
                 display: none !important;
                 visibility: hidden !important;
                 opacity: 0 !important;
@@ -374,7 +378,11 @@ def close_sidebar_menu(driver):
             '.bot-recent-chats',               // Recent chats panel
             '.uploader-button-container',      // + (Add file) button
             'toolbox-drawer',                  // Canvas button
-            '.mic-button-container'            // Microphone button
+            '.mic-button-container',           // Microphone button
+            'hallucination-disclaimer',        // Hallucination disclaimer
+            '.hallucination-disclaimer',
+            '.capabilities-disclaimer',
+            '[data-test-id="highly-regulated-disclaimer"]'
         ];
         
         elementsToHide.forEach(selector => {
@@ -1125,7 +1133,11 @@ def inject_hiding_css(driver):
         .mic-button-container,
         .response-container-footer,
         [class*="recent-chats"],
-        [class*="recent"][class*="chat"] {
+        [class*="recent"][class*="chat"],
+        hallucination-disclaimer,
+        .hallucination-disclaimer,
+        .capabilities-disclaimer,
+        [data-test-id="highly-regulated-disclaimer"] {
             display: none !important;
             visibility: hidden !important;
             opacity: 0 !important;

@@ -24,12 +24,14 @@ pip install pywin32
 
 3. Create `gemini_api_key.txt` with your Gemini API key
 
-4. Update `credentials.json` with your Google account email:
+4. Update `credentials.json` with your Google account email and printer settings:
 ```json
 {
-  "email": "your-email@gmail.com"
+  "email": "your-email@gmail.com",
+  "printer_crop_left": 88
 }
 ```
+   - `printer_crop_left`: Pixels to crop from left side of receipt (default: 88). Adjust if your printer has different margins.
 
 ## Usage
 
