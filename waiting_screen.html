@@ -83,8 +83,10 @@
 
     <script>
         function continueToGems() {
+            // Get the gem URL from sessionStorage (set by Python)
+            const gemUrl = sessionStorage.getItem('gemUrl') || 'https://gemini.google.com/gem/d43c6f8224ff';
             // Navigate directly - Python will handle the overlay
-            window.location.href = 'https://gemini.google.com/gem/d43c6f8224ff';
+            window.location.href = gemUrl;
         }
         
         // Handle keyboard shortcuts

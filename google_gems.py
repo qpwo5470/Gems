@@ -1223,15 +1223,82 @@ def remove_transition_overlay(driver):
     driver.execute_script("if (window.removeTransitionOverlay) window.removeTransitionOverlay();")
     print("Transition overlay removed")
 
-def open_gourmet_gems(driver):
-    """Directly navigate to the specific gem URL"""
+def find_first_gem_url(driver):
+    """Find the first gem in the gems list and return its URL"""
     try:
-        print("\nOpening specific gem directly...")
+        print("\nLooking for gems in the sidebar...")
+        
+        # Wait a bit for the page to load
+        time.sleep(3)
+        
+        # Try to find gem links
+        gem_url = None
+        
+        # Use JavaScript to find gem links more reliably
+        gem_url_script = """
+        // Look for gem links
+        const gemLinks = document.querySelectorAll('a[href*="/gem/"]');
+        if (gemLinks.length > 0) {
+            // Get the first gem that's not a create new gem link
+            for (let link of gemLinks) {
+                const href = link.getAttribute('href');
+                if (href && href.includes('/gem/') && !href.includes('create')) {
+                    return href.startsWith('http') ? href : 'https://gemini.google.com' + href;
+                }
+            }
+        }
+        
+        // Alternative: look for bot list items
+        const botItems = document.querySelectorAll('bot-list-item');
+        if (botItems.length > 0) {
+            const firstBot = botItems[0];
+            const link = firstBot.querySelector('a');
+            if (link && link.href) {
+                return link.href;
+            }
+        }
+        
+        return null;
+        """
+        
+        gem_url = driver.execute_script(gem_url_script)
+        
+        if gem_url:
+            print(f"Found first gem URL: {gem_url}")
+            # Store it globally for later use
+            driver.first_gem_url = gem_url
+            return gem_url
+        else:
+            print("No gems found in the list")
+            # Fallback to hardcoded URL if no gems found
+            fallback_url = "https://gemini.google.com/gem/d43c6f8224ff"
+            print(f"Using fallback URL: {fallback_url}")
+            driver.first_gem_url = fallback_url
+            return fallback_url
+            
+    except Exception as e:
+        print(f"Error finding gem URL: {str(e)}")
+        # Fallback to hardcoded URL
+        fallback_url = "https://gemini.google.com/gem/d43c6f8224ff"
+        driver.first_gem_url = fallback_url
+        return fallback_url
+
+def open_gourmet_gems(driver):
+    """Navigate to the gem URL (either found dynamically or stored)"""
+    try:
+        print("\nOpening gem...")
+        
+        # Get the gem URL (use stored one if available)
+        gem_url = getattr(driver, 'first_gem_url', None)
+        if not gem_url:
+            # If no stored URL, find it
+            gem_url = find_first_gem_url(driver)
+        
+        print(f"Navigating to: {gem_url}")
         
         # Inject CSS before navigation to prepare the page
         inject_hiding_css(driver)
         
-        gem_url = "https://gemini.google.com/gem/d43c6f8224ff"
         driver.get(gem_url)
         
         # Show transition overlay immediately
@@ -1249,7 +1316,7 @@ def open_gourmet_gems(driver):
         # Remove overlay after elements are hidden
         remove_transition_overlay(driver)
         
-        print(f"Successfully navigated to: {gem_url}")
+        print(f"Successfully navigated to gem")
         
         # Start monitoring chat for "Gems Station" keyword
         monitor_chat_and_add_print_button(driver)
@@ -1379,6 +1446,11 @@ def show_waiting_screen(driver):
     # Navigate to the waiting screen
     driver.get(file_url)
     
+    # Inject the gem URL into sessionStorage for the waiting screen to use
+    if hasattr(driver, 'first_gem_url'):
+        driver.execute_script(f"sessionStorage.setItem('gemUrl', '{driver.first_gem_url}');")
+        print(f"Gem URL set in sessionStorage: {driver.first_gem_url}")
+    
     # Wait for the user to click the continue button
     print("Waiting for user to click the continue button...")
     
@@ -1441,6 +1513,9 @@ def main():
     try:
         print("\nStarting login process...")
         login_to_google_gems(driver, credentials)
+        
+        # Find and store the first gem URL after login
+        find_first_gem_url(driver)
         
         # Show the waiting screen after successful login and handle the cycle
         show_waiting_screen_and_continue(driver)
