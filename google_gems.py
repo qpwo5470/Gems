@@ -1226,19 +1226,74 @@ def remove_transition_overlay(driver):
 def find_first_gem_url(driver):
     """Find the first gem in the gems list and return its URL"""
     try:
-        print("\nLooking for gems in the sidebar...")
+        print("\nChecking sidebar and looking for gems...")
         
         # Wait a bit for the page to load
-        time.sleep(3)
+        time.sleep(2)
         
-        # Try to find gem links
-        gem_url = None
+        # First, check if sidebar is collapsed and open it if needed
+        open_sidebar_script = """
+        // Check if we can see gems
+        let gemLinks = document.querySelectorAll('a[href*="/gem/"]');
+        let botItems = document.querySelectorAll('bot-list-item');
         
-        # Use JavaScript to find gem links more reliably
+        // If no gems visible, try to open sidebar
+        if (gemLinks.length === 0 && botItems.length === 0) {
+            console.log('No gems visible, looking for menu button...');
+            
+            // Try different selectors for the menu button
+            const menuSelectors = [
+                'button[aria-label="기본 메뉴"]',
+                'button[data-test-id="side-nav-menu-button"]',
+                'button[contains(@aria-label, "menu")]',
+                'button mat-icon[fonticon="menu"]',
+                'button .material-icons:contains("menu")'
+            ];
+            
+            let menuButton = null;
+            for (const selector of menuSelectors) {
+                try {
+                    menuButton = document.querySelector(selector);
+                    if (menuButton) break;
+                } catch (e) {}
+            }
+            
+            // Alternative: find button containing menu icon
+            if (!menuButton) {
+                const buttons = document.querySelectorAll('button');
+                for (const btn of buttons) {
+                    if (btn.querySelector('mat-icon[fonticon="menu"]') || 
+                        (btn.textContent && btn.textContent.includes('menu'))) {
+                        menuButton = btn;
+                        break;
+                    }
+                }
+            }
+            
+            if (menuButton) {
+                console.log('Found menu button, clicking to open sidebar');
+                menuButton.click();
+                return 'sidebar_opened';
+            }
+        }
+        
+        return 'sidebar_already_open';
+        """
+        
+        sidebar_status = driver.execute_script(open_sidebar_script)
+        
+        if sidebar_status == 'sidebar_opened':
+            print("Opened collapsed sidebar")
+            time.sleep(2)  # Wait for sidebar animation
+        else:
+            print("Sidebar was already open")
+        
+        # Now look for gem links
         gem_url_script = """
         // Look for gem links
         const gemLinks = document.querySelectorAll('a[href*="/gem/"]');
         if (gemLinks.length > 0) {
+            console.log('Found', gemLinks.length, 'gem links');
             // Get the first gem that's not a create new gem link
             for (let link of gemLinks) {
                 const href = link.getAttribute('href');
@@ -1251,6 +1306,7 @@ def find_first_gem_url(driver):
         // Alternative: look for bot list items
         const botItems = document.querySelectorAll('bot-list-item');
         if (botItems.length > 0) {
+            console.log('Found', botItems.length, 'bot items');
             const firstBot = botItems[0];
             const link = firstBot.querySelector('a');
             if (link && link.href) {
@@ -1258,6 +1314,7 @@ def find_first_gem_url(driver):
             }
         }
         
+        console.log('No gems found');
         return null;
         """
         
