@@ -28,10 +28,14 @@ pip install pywin32
 ```json
 {
   "email": "your-email@gmail.com",
-  "printer_crop_left": 88
+  "printer_crop_left": 88,
+  "crop_top": 0,
+  "crop_bottom": 0
 }
 ```
    - `printer_crop_left`: Pixels to crop from left side of receipt (default: 88). Adjust if your printer has different margins.
+   - `crop_top`: Pixels to crop from top of generated receipt image (default: 0)
+   - `crop_bottom`: Pixels to crop from bottom of generated receipt image (default: 0)
 
 ## Usage
 

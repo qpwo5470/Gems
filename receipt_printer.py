@@ -115,6 +115,26 @@ class ReceiptPrinter:
             # Draw the text centered
             draw.text((text_x, text_y), full_name, font=font, fill='black')
             
+            # Load crop settings from credentials.json
+            crop_top = 0
+            crop_bottom = 0
+            try:
+                with open('credentials.json', 'r') as f:
+                    creds = json.load(f)
+                    crop_top = creds.get('crop_top', 0)
+                    crop_bottom = creds.get('crop_bottom', 0)
+            except:
+                pass  # Use defaults if file not found
+            
+            # Apply cropping if specified
+            if crop_top > 0 or crop_bottom > 0:
+                width, height = img.size
+                # Calculate new height
+                new_height = height - crop_top - crop_bottom
+                if new_height > 0:
+                    img = img.crop((0, crop_top, width, height - crop_bottom))
+                    print(f"Cropped image: {crop_top}px from top, {crop_bottom}px from bottom")
+            
             # Save the modified image
             img.save(output_path, 'PNG')
             print(f"Receipt saved to: {output_path}")
