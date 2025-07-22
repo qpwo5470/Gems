@@ -18,7 +18,7 @@ class ReceiptPrinter:
         """Initialize the receipt printer with font settings"""
         self.base_font_size = 36  # 3 times bigger (12 * 3)
         self.name_x = 302  # Right align position
-        self.name_y = 66   # Bottom baseline position (moved down by 12 pixels from 54)
+        self.name_y = 54   # Bottom baseline position (adjusted for image size reduction - was 66, now 54 due to 12px reduction from top)
         self.max_width = 162  # Maximum text width
         self.bounding_x = 140  # Bounding box start x
         
