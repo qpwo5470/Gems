@@ -27,6 +27,7 @@ datas = [
     
     # Python modules that might be needed
     ('gemini_parser.py', '.'),
+    ('gemini_parser_no_pandas.py', '.'),
     ('receipt_printer.py', '.'),
     ('windows_thermal_printer.py', '.'),
 ]

@@ -15,7 +15,11 @@ import base64
 import threading
 import random
 import platform
-from gemini_parser import GeminiParser
+try:
+    from gemini_parser import GeminiParser
+except ImportError:
+    # Fallback to no-pandas version if pandas import fails
+    from gemini_parser_no_pandas import GeminiParser
 from receipt_printer import ReceiptPrinter
 
 def load_credentials(filepath='credentials.json'):
